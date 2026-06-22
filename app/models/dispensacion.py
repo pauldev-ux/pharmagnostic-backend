@@ -16,7 +16,7 @@ class Dispensacion(Base):
     id_receta = Column(Integer, ForeignKey("prescriptions.id_receta"), nullable=False, index=True)
     id_usuario_farmaceutico = Column(Integer, ForeignKey("users.id_usuario"), nullable=True)
     codigo_verificacion = Column(String(128), nullable=False, unique=True, index=True)
-    estado = Column(String(20), nullable=False, default="pendiente")
+    estado = Column(String(20), nullable=False, default="pendiente", index=True)
     observaciones = Column(Text, nullable=True)
     fecha_registro = Column(DateTime, nullable=False, default=datetime.utcnow)
     fecha_dispensacion = Column(DateTime, nullable=True)

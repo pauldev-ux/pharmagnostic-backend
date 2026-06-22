@@ -7,6 +7,7 @@ from app.core.security import hash_password, validate_password_strength, verify_
 from app.models.user import User
 from app.repositories.role_repository import RoleRepository
 from app.repositories.user_repository import UserRepository
+from app.services import auditoria_service
 
 
 class UserService:
@@ -43,7 +44,13 @@ class UserService:
             numero_licencia=data.get("numero_licencia"),
             activo=data.get("activo", True),
         )
-        return self.user_repository.create(user)
+        created = self.user_repository.create(user)
+        auditoria_service.registrar(
+            self.db, accion="crear", modulo="usuarios", tabla_afectada="users",
+            id_registro=created.id_usuario, detalle=f"Usuario '{created.username}' creado",
+            commit=True,
+        )
+        return created
 
     def get_users(
         self,
@@ -96,7 +103,12 @@ class UserService:
         if data.get("numero_licencia") is not None:
             user.numero_licencia = data["numero_licencia"]
 
-        return self.user_repository.update(user)
+        updated = self.user_repository.update(user)
+        auditoria_service.registrar(
+            self.db, accion="actualizar", modulo="usuarios", tabla_afectada="users",
+            id_registro=user_id, detalle=f"Usuario '{updated.username}' actualizado", commit=True,
+        )
+        return updated
 
     def update_status(self, user_id: int, active: bool, current_user: User) -> User:
         user = self.user_repository.get_by_id(user_id)

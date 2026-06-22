@@ -14,6 +14,7 @@ class ValidacionIA(Base):
     id_receta = Column(Integer, ForeignKey("prescriptions.id_receta"), nullable=False, index=True)
     id_audio = Column(Integer, ForeignKey("audio_clinico.id_audio"), nullable=True)
     nivel_riesgo = Column(Integer, nullable=False, default=0)
+    duracion_ms = Column(Integer, nullable=True)  # tiempo de respuesta de la IA
     resumen = Column(Text, nullable=True)
     # Listas estructuradas (JSONB) con los hallazgos.
     interacciones = Column(JSONB, nullable=True, default=list)
@@ -22,7 +23,7 @@ class ValidacionIA(Base):
     errores_dosis = Column(JSONB, nullable=True, default=list)
     inconsistencias_audio = Column(JSONB, nullable=True, default=list)
     fuentes_rag = Column(JSONB, nullable=True, default=list)
-    fecha_validacion = Column(DateTime, nullable=False, default=datetime.utcnow)
+    fecha_validacion = Column(DateTime, nullable=False, default=datetime.utcnow, index=True)
 
     receta = relationship("Prescription", back_populates="validaciones")
     audio = relationship("AudioClinico", foreign_keys=[id_audio])

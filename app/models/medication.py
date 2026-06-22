@@ -15,7 +15,7 @@ class Medication(Base):
     dosis = Column(String(100), nullable=True)
     presentacion = Column(String(100), nullable=True)
     precio = Column(Numeric(10, 2), nullable=True)
-    estado = Column(String(20), nullable=False, default="active")
+    estado = Column(String(20), nullable=False, default="active", index=True)
     fecha_creacion = Column(DateTime, nullable=False, default=datetime.utcnow)
     fecha_actualizacion = Column(DateTime, nullable=True, onupdate=datetime.utcnow)
     id_usuario_creacion = Column(Integer, ForeignKey("users.id_usuario"), nullable=True)

@@ -8,6 +8,7 @@ from app.models.user import User
 from app.repositories.alerta_repository import AlertaRepository
 from app.repositories.audio_repository import AudioRepository
 from app.repositories.prescription_repository import PrescriptionRepository
+from app.services import auditoria_service
 
 
 class AlertaService:
@@ -32,6 +33,11 @@ class AlertaService:
         if not alerta:
             raise HTTPException(status_code=404, detail="Alerta no encontrada")
         alerta.revisada = revisada
+        auditoria_service.registrar(
+            self.db, accion="alerta_revisada", modulo="alertas", tabla_afectada="alerta_clinica",
+            id_registro=alerta_id, detalle=f"Alerta {'revisada' if revisada else 'reabierta'}",
+            user_id=current_user.id_usuario,
+        )
         return self.repository.save(alerta)
 
     def _build_alerts(self, recipe) -> list[AlertaClinica]:

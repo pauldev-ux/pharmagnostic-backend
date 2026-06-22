@@ -1,7 +1,7 @@
 from typing import Optional
 
 from sqlalchemy import func
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.models.documento_farmacologico import DocumentoFarmacologico
 from app.models.fragmento_farmacologico import FragmentoFarmacologico
@@ -69,6 +69,7 @@ class PharmacologicalRepository:
         return (
             self.db.query(FragmentoFarmacologico)
             .join(DocumentoFarmacologico)
+            .options(joinedload(FragmentoFarmacologico.documento))  # evita N+1 al leer documento
             .filter(
                 DocumentoFarmacologico.activo.is_(True),
                 DocumentoFarmacologico.estado_procesamiento == "procesado",

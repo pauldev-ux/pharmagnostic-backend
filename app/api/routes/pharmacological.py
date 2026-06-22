@@ -36,9 +36,9 @@ def upload_document(
     fuente: Optional[str] = Form(default=None),
     version: Optional[str] = Form(default=None),
     db: Session = Depends(get_db),
-    _: User = Depends(only_admin),
+    current_user: User = Depends(only_admin),
 ):
-    return RagService(db).upload_document(file, titulo, tipo_documento, fuente, version)
+    return RagService(db).upload_document(file, titulo, tipo_documento, fuente, version, current_user)
 
 
 @router.get("/pharmacological-documents", response_model=list[DocumentoOut])

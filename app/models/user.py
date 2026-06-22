@@ -10,14 +10,14 @@ class User(Base):
     __tablename__ = "users"
 
     id_usuario = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    id_rol = Column(Integer, ForeignKey("roles.id_rol"), nullable=False)
+    id_rol = Column(Integer, ForeignKey("roles.id_rol"), nullable=False, index=True)
     username = Column(String(50), nullable=False, unique=True, index=True)
     nombre = Column(String(100), nullable=False)
     apellido = Column(String(100), nullable=False)
     correo = Column(String(150), nullable=False, unique=True, index=True)
     contrasena_hash = Column(String(255), nullable=False)
     numero_licencia = Column(String(50), nullable=True)
-    activo = Column(Boolean, nullable=False, default=True)
+    activo = Column(Boolean, nullable=False, default=True, index=True)
     fecha_creacion = Column(DateTime, nullable=False, default=datetime.utcnow)
     fecha_actualizacion = Column(DateTime, nullable=True, onupdate=datetime.utcnow)
 

@@ -13,7 +13,7 @@ from app.repositories.alerta_repository import AlertaRepository
 from app.repositories.prescription_repository import PrescriptionRepository
 from app.repositories.validacion_repository import ValidacionRepository
 from app.schemas.validacion import DISCLAIMER
-from app.services import ollama_client
+from app.services import auditoria_service, ollama_client
 from app.services.ollama_client import OllamaError
 from app.services.rag_service import RagService
 
@@ -227,10 +227,14 @@ class ValidationService:
             f"Devuelve solo el JSON."
         )
 
+        import time
+
+        inicio = time.perf_counter()
         try:
             respuesta = ollama_client.chat(system, prompt)
         except OllamaError:
             raise HTTPException(status_code=503, detail="Ollama no disponible para la validación con IA")
+        duracion_ms = int((time.perf_counter() - inicio) * 1000)
 
         try:
             data = _extract_json(respuesta)
@@ -243,6 +247,7 @@ class ValidationService:
             "interacciones": self._normalizar_lista(data.get("interacciones")),
             "contraindicaciones": self._normalizar_lista(data.get("contraindicaciones")),
             "nivel_sugerido": int(data.get("nivel_sugerido", 0) or 0),
+            "duracion_ms": duracion_ms,
         }
 
     @classmethod
@@ -281,6 +286,7 @@ class ValidationService:
             id_receta=recipe_id,
             id_audio=deterministic["id_audio"],
             nivel_riesgo=nivel_final,
+            duracion_ms=llm.get("duracion_ms"),
             resumen=resumen,
             interacciones=llm["interacciones"],
             contraindicaciones=contraindicaciones,
@@ -302,6 +308,11 @@ class ValidationService:
         if nivel_final < 3:
             recipe.justificacion = None
 
+        auditoria_service.registrar(
+            self.db, accion="validacion_ia", modulo="validacion", tabla_afectada="prescriptions",
+            id_registro=recipe_id, detalle=f"Validación IA nivel {nivel_final}",
+            user_id=current_user.id_usuario,
+        )
         self.db.commit()
         self.db.refresh(validacion)
 
@@ -383,5 +394,10 @@ class ValidationService:
         recipe = self._get_recipe(recipe_id)
         recipe.justificacion = justificacion
         recipe.bloqueada = False
+        auditoria_service.registrar(
+            self.db, accion="alerta_justificada", modulo="validacion", tabla_afectada="prescriptions",
+            id_registro=recipe_id, detalle="Receta justificada (desbloqueada)",
+            user_id=current_user.id_usuario,
+        )
         self.db.commit()
         return {"id_receta": recipe_id, "bloqueada": False, "justificacion": justificacion}

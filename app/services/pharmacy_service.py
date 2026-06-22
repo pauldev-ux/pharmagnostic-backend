@@ -8,7 +8,7 @@ from app.models.user import User
 from app.repositories.alerta_repository import AlertaRepository
 from app.repositories.dispensacion_repository import DispensacionRepository
 from app.repositories.prescription_repository import PrescriptionRepository
-from app.services import qr_service
+from app.services import auditoria_service, qr_service
 from app.services.prescription_service import PrescriptionService
 
 
@@ -58,6 +58,11 @@ class PharmacyService:
                 estado="pendiente",
             )
             self.repository.create(dispensacion)
+            auditoria_service.registrar(
+                self.db, accion="qr_generado", modulo="farmacia", tabla_afectada="dispensacion",
+                id_registro=dispensacion.id_dispensacion, detalle=f"QR generado para receta #{recipe_id}",
+                user_id=current_user.id_usuario, commit=True,
+            )
 
         url = qr_service.verification_url(dispensacion.codigo_verificacion)
         return {
@@ -113,12 +118,23 @@ class PharmacyService:
         }
 
     # --- Verificación de QR ---
-    def verify_qr(self, codigo: str) -> dict:
+    def verify_qr(self, codigo: str, current_user: User | None = None) -> dict:
         token = qr_service.extract_token(codigo)
         dispensacion = self.repository.get_by_codigo(token)
+        user_id = current_user.id_usuario if current_user else None
         if not dispensacion:
+            auditoria_service.registrar(
+                self.db, accion="qr_verificado", modulo="farmacia",
+                detalle="Verificación de QR inválido", user_id=user_id, commit=True,
+            )
             return {"estado_qr": "invalido", "mensaje": "Código de verificación no encontrado."}
 
+        auditoria_service.registrar(
+            self.db, accion="qr_verificado", modulo="farmacia", tabla_afectada="dispensacion",
+            id_registro=dispensacion.id_dispensacion,
+            detalle=f"Verificación de QR (receta #{dispensacion.id_receta})",
+            user_id=user_id, commit=True,
+        )
         recipe = dispensacion.receta
         base = {"id_receta": dispensacion.id_receta, "id_dispensacion": dispensacion.id_dispensacion}
 
@@ -162,6 +178,11 @@ class PharmacyService:
         dispensacion.observaciones = observaciones
         dispensacion.fecha_dispensacion = datetime.utcnow()
         recipe.estado = "dispensada"
+        auditoria_service.registrar(
+            self.db, accion="dispensacion_confirmada", modulo="farmacia", tabla_afectada="dispensacion",
+            id_registro=dispensacion.id_dispensacion, detalle=f"Receta #{recipe_id} dispensada",
+            user_id=current_user.id_usuario,
+        )
         self.db.commit()
         self.db.refresh(dispensacion)
         return dispensacion
@@ -176,6 +197,11 @@ class PharmacyService:
         dispensacion.id_usuario_farmaceutico = current_user.id_usuario
         dispensacion.observaciones = observaciones
         dispensacion.fecha_dispensacion = datetime.utcnow()
+        auditoria_service.registrar(
+            self.db, accion="dispensacion_rechazada", modulo="farmacia", tabla_afectada="dispensacion",
+            id_registro=dispensacion.id_dispensacion, detalle=f"Dispensación de receta #{recipe_id} rechazada",
+            user_id=current_user.id_usuario,
+        )
         self.db.commit()
         self.db.refresh(dispensacion)
         return dispensacion

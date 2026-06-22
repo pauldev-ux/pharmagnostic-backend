@@ -59,9 +59,9 @@ def pharmacy_recipe_detail(
 def verify_qr(
     payload: VerifyQrRequest,
     db: Session = Depends(get_db),
-    _: User = Depends(can_consult),
+    current_user: User = Depends(can_consult),
 ):
-    return PharmacyService(db).verify_qr(payload.codigo)
+    return PharmacyService(db).verify_qr(payload.codigo, current_user)
 
 
 @router.post("/pharmacy/recipes/{prescription_id}/dispense", response_model=DispensacionOut)

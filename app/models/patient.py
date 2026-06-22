@@ -27,7 +27,7 @@ class Patient(Base):
     alergias = Column(Text, nullable=True)
     antecedentes_medicos = Column(Text, nullable=True)
     observaciones = Column(Text, nullable=True)
-    activo = Column(Boolean, nullable=False, default=True)
+    activo = Column(Boolean, nullable=False, default=True, index=True)
     # Cuenta de acceso del paciente (portal). Un registro clínico por cuenta.
     id_usuario = Column(Integer, ForeignKey("users.id_usuario"), nullable=True, unique=True)
     fecha_registro = Column(DateTime, nullable=False, default=datetime.utcnow)

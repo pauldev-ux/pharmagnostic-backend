@@ -13,7 +13,7 @@ class Diagnosis(Base):
     __tablename__ = "diagnoses"
 
     id_diagnostico = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    id_paciente = Column(Integer, ForeignKey("patients.id_paciente"), nullable=False)
+    id_paciente = Column(Integer, ForeignKey("patients.id_paciente"), nullable=False, index=True)
     id_usuario = Column(Integer, ForeignKey("users.id_usuario"), nullable=False)
     codigo_cie10 = Column(String(10), nullable=True, index=True)
     descripcion = Column(Text, nullable=False)

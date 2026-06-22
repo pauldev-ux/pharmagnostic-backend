@@ -9,10 +9,12 @@ from app.core.security import (
 )
 from app.models.user import User
 from app.repositories.user_repository import UserRepository
+from app.services import auditoria_service
 
 
 class AuthService:
     def __init__(self, db: Session):
+        self.db = db
         self.repository = UserRepository(db)
 
     @staticmethod
@@ -48,6 +50,11 @@ class AuthService:
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Usuario inactivo",
             )
+        auditoria_service.registrar(
+            self.db, accion="login", modulo="auth", tabla_afectada="users",
+            id_registro=user.id_usuario, detalle=f"Inicio de sesión de '{user.username}'",
+            user_id=user.id_usuario, commit=True,
+        )
         return self._build_tokens(user)
 
     def refresh(self, refresh_token: str) -> dict:

@@ -1,7 +1,9 @@
 from fastapi import APIRouter
 
+from app.api.routes.admin_dashboard import router as admin_dashboard_router
 from app.api.routes.alertas import router as alertas_router
 from app.api.routes.audios import router as audios_router
+from app.api.routes.audit import router as audit_router
 from app.api.routes.auth import router as auth_router
 from app.api.routes.clinical_history import router as clinical_history_router
 from app.api.routes.diagnoses import router as diagnoses_router
@@ -34,3 +36,5 @@ api_router.include_router(pharmacological_router)
 api_router.include_router(validations_router)
 api_router.include_router(pharmacy_router)
 api_router.include_router(patient_portal_router)
+api_router.include_router(audit_router)
+api_router.include_router(admin_dashboard_router)

@@ -30,6 +30,11 @@ def _get_model():
 
 def transcribe_file(path: str) -> str:
     """Devuelve el texto transcrito del archivo de audio indicado."""
+    import time
+
+    inicio = time.perf_counter()
     model = _get_model()
     segments, _info = model.transcribe(path)
-    return " ".join(segment.text.strip() for segment in segments).strip()
+    texto = " ".join(segment.text.strip() for segment in segments).strip()
+    logger.info("Transcripción completada en %d ms (modelo %s)", int((time.perf_counter() - inicio) * 1000), settings.WHISPER_MODEL)
+    return texto

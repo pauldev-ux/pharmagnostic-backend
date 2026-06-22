@@ -13,7 +13,7 @@ class AudioClinico(Base):
     __tablename__ = "audio_clinico"
 
     id_audio = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    id_receta = Column(Integer, ForeignKey("prescriptions.id_receta"), nullable=False)
+    id_receta = Column(Integer, ForeignKey("prescriptions.id_receta"), nullable=False, index=True)
     id_usuario = Column(Integer, ForeignKey("users.id_usuario"), nullable=False)
     ruta_archivo = Column(String(500), nullable=False)
     formato = Column(String(20), nullable=False)

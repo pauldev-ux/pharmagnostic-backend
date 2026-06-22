@@ -12,7 +12,7 @@ from app.models.documento_farmacologico import DocumentoFarmacologico
 from app.models.fragmento_farmacologico import FragmentoFarmacologico
 from app.repositories.pharmacological_repository import PharmacologicalRepository
 from app.schemas.pharmacological import SIN_INFORMACION
-from app.services import ollama_client
+from app.services import auditoria_service, ollama_client
 from app.services.ollama_client import OllamaError
 from app.services.text_extraction import extract_text
 
@@ -82,6 +82,7 @@ class RagService:
         tipo_documento: str | None,
         fuente: str | None,
         version: str | None,
+        current_user=None,
     ) -> dict:
         extension = self._extension(file.filename)
         if extension not in self._allowed_formats:
@@ -117,8 +118,15 @@ class RagService:
             activo=True,
         )
         self.repository.create_document(documento)
+        # Capturar la respuesta antes de auditar (el commit de auditoría expira el objeto).
         data = documento.__dict__.copy()
         data["total_fragmentos"] = 0
+        auditoria_service.registrar(
+            self.db, accion="documento_cargado", modulo="farmacologia",
+            tabla_afectada="documento_farmacologico", id_registro=data["id_documento"],
+            detalle=f"Documento '{data['titulo']}' cargado",
+            user_id=current_user.id_usuario if current_user else None, commit=True,
+        )
         return data
 
     def process_document(self, document_id: int) -> dict:
@@ -182,6 +190,9 @@ class RagService:
         return self.repository.save(documento)
 
     def search(self, query: str, top_k: int | None = None) -> list[dict]:
+        import time
+
+        inicio = time.perf_counter()
         k = top_k or settings.RAG_TOP_K
         fragmentos = self.repository.get_active_fragments()
         if not fragmentos:
@@ -213,6 +224,9 @@ class RagService:
                     "similitud": round(float(similitud), 4),
                 }
             )
+        logger.info(
+            "Búsqueda RAG: %d fragmentos evaluados en %d ms", len(fragmentos), int((time.perf_counter() - inicio) * 1000)
+        )
         return resultados
 
     def ask(self, query: str, top_k: int | None = None) -> dict:
