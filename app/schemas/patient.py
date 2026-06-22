@@ -43,7 +43,10 @@ class PatientBase(BaseModel):
 
 class PatientCreate(PatientBase):
     ci: str = Field(min_length=1, max_length=20)
-    id_usuario: Optional[int] = None  # cuenta de acceso del paciente (portal)
+    id_usuario: Optional[int] = None  # vincular una cuenta existente
+    # O crear la cuenta de acceso del paciente al registrar (usuario + contraseña).
+    username: Optional[str] = Field(default=None, min_length=3, max_length=50)
+    password: Optional[str] = Field(default=None, min_length=6, max_length=100)
 
 
 class PatientUpdate(BaseModel):

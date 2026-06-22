@@ -68,6 +68,24 @@ def _ensure_linked_patient(client, doctor_headers):
     return _create_linked_patient(client, doctor_headers, uid)
 
 
+def test_registrar_paciente_crea_cuenta(client, doctor_headers):
+    uname = f"pac{random.randint(1, 999999)}"
+    res = client.post(
+        "/api/v1/patients",
+        headers=doctor_headers,
+        json={"nombre": "Nueva", "apellido": "Cuenta", "ci": _ci(), "fecha_nacimiento": "1995-01-01",
+              "username": uname, "password": "clave123"},
+    )
+    assert res.status_code == 201, res.text
+    # El paciente puede iniciar sesión con la cuenta recién creada.
+    login = client.post("/api/v1/auth/login", json={"username": uname, "contrasena": "clave123"})
+    assert login.status_code == 200
+    headers = {"Authorization": f"Bearer {login.json()['access_token']}"}
+    perfil = client.get("/api/v1/patient-portal/profile", headers=headers)
+    assert perfil.status_code == 200
+    assert perfil.json()["nombre"] == "Nueva"
+
+
 # --- Perfil y recetas -----------------------------------------------------------
 
 def test_consulta_perfil(client, doctor_headers):
@@ -156,8 +174,12 @@ def test_chat_limita_longitud(client, doctor_headers):
 # --- Permisos -------------------------------------------------------------------
 
 def test_permisos_otros_roles(client, doctor_headers, auth_headers, pharmacist_headers):
-    # Médico, admin y farmacéutico NO acceden al portal del paciente.
-    for h in (doctor_headers, auth_headers, pharmacist_headers):
+    # Médico y farmacéutico NO acceden al portal del paciente.
+    for h in (doctor_headers, pharmacist_headers):
         assert client.get("/api/v1/patient-portal/profile", headers=h).status_code == 403
         assert client.get("/api/v1/patient-portal/recipes", headers=h).status_code == 403
+    # El admin (superusuario) sí accede; sin registro vinculado, perfil 404 y recetas vacías.
+    assert client.get("/api/v1/patient-portal/profile", headers=auth_headers).status_code in {200, 404}
+    assert client.get("/api/v1/patient-portal/recipes", headers=auth_headers).status_code == 200
+    # Sin token, no autorizado.
     assert client.get("/api/v1/patient-portal/profile").status_code in {401, 403}

@@ -53,8 +53,11 @@ class PatientPortalService:
         self.prescription_repository = PrescriptionRepository(db)
         self.dispensacion_repository = DispensacionRepository(db)
 
+    def _my_patient_optional(self, current_user: User):
+        return self.patient_repository.get_by_user(current_user.id_usuario)
+
     def _my_patient(self, current_user: User) -> Patient:
-        patient = self.patient_repository.get_by_user(current_user.id_usuario)
+        patient = self._my_patient_optional(current_user)
         if not patient:
             raise HTTPException(
                 status_code=404,
@@ -94,7 +97,10 @@ class PatientPortalService:
         }
 
     def list_recipes(self, current_user: User) -> list[dict]:
-        patient = self._my_patient(current_user)
+        patient = self._my_patient_optional(current_user)
+        if not patient:
+            # El administrador (u otra cuenta sin registro clínico) ve una lista vacía.
+            return []
         recipes, _ = self.prescription_repository.get_all(patient_id=patient.id_paciente, limit=200)
         return [
             {

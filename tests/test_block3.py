@@ -78,7 +78,9 @@ def test_historial_tipo_invalido(client, doctor_headers):
 def test_historial_solo_medico(client, doctor_headers, auth_headers, pharmacist_headers):
     pid = _create_patient(client, doctor_headers)["id_paciente"]
     payload = {"tipo_evento": "otro", "descripcion": "intento"}
-    assert client.post(f"/api/v1/patients/{pid}/clinical-history", headers=auth_headers, json=payload).status_code == 403
+    # El admin es superusuario: puede gestionar historial.
+    assert client.post(f"/api/v1/patients/{pid}/clinical-history", headers=auth_headers, json=payload).status_code == 201
+    # El farmacéutico no.
     assert (
         client.post(f"/api/v1/patients/{pid}/clinical-history", headers=pharmacist_headers, json=payload).status_code
         == 403
@@ -136,11 +138,12 @@ def test_diagnostico_tipo_invalido(client, doctor_headers):
 def test_diagnostico_solo_medico(client, doctor_headers, auth_headers, pharmacist_headers):
     pid = _create_patient(client, doctor_headers)["id_paciente"]
     payload = {"descripcion": "intento"}
-    assert client.post(f"/api/v1/patients/{pid}/diagnoses", headers=auth_headers, json=payload).status_code == 403
+    # El admin (superusuario) puede crear; el farmacéutico no.
+    assert client.post(f"/api/v1/patients/{pid}/diagnoses", headers=auth_headers, json=payload).status_code == 201
     assert (
         client.post(f"/api/v1/patients/{pid}/diagnoses", headers=pharmacist_headers, json=payload).status_code == 403
     )
-    # El administrador sí puede consultar.
+    # El administrador también puede consultar.
     assert client.get(f"/api/v1/patients/{pid}/diagnoses", headers=auth_headers).status_code == 200
 
 

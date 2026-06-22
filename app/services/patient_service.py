@@ -42,12 +42,37 @@ class PatientService:
         if existing and existing.id_paciente != exclude_patient_id:
             raise HTTPException(status_code=409, detail="La cuenta ya está vinculada a otro paciente")
 
+    def _create_patient_account(self, data: dict) -> int:
+        """Crea una cuenta de acceso con rol paciente y devuelve su id_usuario."""
+        from app.repositories.role_repository import RoleRepository
+        from app.services.user_service import UserService
+
+        rol = RoleRepository(self.db).get_by_name("patient")
+        if not rol:
+            raise HTTPException(status_code=500, detail="No existe el rol 'patient'")
+        correo = data.get("correo") or f"{data['username'].strip().lower()}@pharmagnostic.local"
+        user = UserService(self.db).create_user(
+            {
+                "username": data["username"],
+                "nombre": data["nombre"],
+                "apellido": data["apellido"],
+                "correo": correo,
+                "contrasena": data["password"],
+                "id_rol": rol.id_rol,
+            }
+        )
+        return user.id_usuario
+
     def create_patient(self, data: dict, current_user: User) -> Patient:
         ci = data["ci"].strip()
         if self.repository.get_by_ci(ci):
             raise HTTPException(status_code=409, detail="El CI ya está registrado")
 
-        self._validate_account_link(data.get("id_usuario"))
+        # Crear la cuenta de acceso del paciente, o vincular una existente.
+        if data.get("username") and data.get("password"):
+            data["id_usuario"] = self._create_patient_account(data)
+        else:
+            self._validate_account_link(data.get("id_usuario"))
         correo = data.get("correo")
         patient = Patient(
             nombre=data["nombre"].strip(),

@@ -187,8 +187,8 @@ def test_permisos_validacion(client, doctor_headers, auth_headers, pharmacist_he
     # Validar el primero (médico) para tener historial.
     client.post(f"/api/v1/prescriptions/{rid}/validate", headers=doctor_headers)
 
-    # Admin solo consulta; farmacéutico sin acceso.
-    assert client.post(f"/api/v1/prescriptions/{rid}/validate", headers=auth_headers).status_code == 403
+    # El admin (superusuario) también valida; el farmacéutico no.
+    assert client.post(f"/api/v1/prescriptions/{rid}/validate", headers=auth_headers).status_code == 200
     assert client.post(f"/api/v1/prescriptions/{rid}/validate", headers=pharmacist_headers).status_code == 403
     assert client.get(f"/api/v1/prescriptions/{rid}/validations", headers=auth_headers).status_code == 200
     assert client.get(f"/api/v1/prescriptions/{rid}/validations", headers=pharmacist_headers).status_code == 403

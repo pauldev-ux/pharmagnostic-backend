@@ -144,6 +144,7 @@ def test_permisos_farmacia(client, doctor_headers, auth_headers, pharmacist_head
     assert client.get("/api/v1/pharmacy/recipes", headers=auth_headers).status_code == 200
     assert client.get("/api/v1/pharmacy/recipes", headers=doctor_headers).status_code == 200
 
-    # Dispensar/rechazar: solo farmacéutico (médico y admin no).
+    # Dispensar/rechazar: el médico NO (no es farmacéutico ni admin).
     assert client.post(f"/api/v1/pharmacy/recipes/{rid}/dispense", headers=doctor_headers, json={"codigo_verificacion": codigo}).status_code == 403
-    assert client.post(f"/api/v1/pharmacy/recipes/{rid}/reject", headers=auth_headers, json={"observaciones": "no"}).status_code == 403
+    # El admin (superusuario) SÍ puede.
+    assert client.post(f"/api/v1/pharmacy/recipes/{rid}/reject", headers=auth_headers, json={"observaciones": "Revisión administrativa"}).status_code == 200

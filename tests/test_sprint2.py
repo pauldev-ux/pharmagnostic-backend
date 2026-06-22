@@ -85,8 +85,8 @@ def test_audio_permisos_por_rol(client, doctor_headers, auth_headers, pharmacist
     recipe = _create_recipe(client, doctor_headers, pid, [{"id_medicamento": med, "dosis": "1", "frecuencia": "8h"}])
     rid = recipe["id_receta"]
 
-    # Admin y farmacéutico NO pueden grabar.
-    assert client.post(f"/api/v1/prescriptions/{rid}/audios", headers=auth_headers, files=_audio_file()).status_code == 403
+    # El admin (superusuario) sí puede grabar; el farmacéutico no.
+    assert client.post(f"/api/v1/prescriptions/{rid}/audios", headers=auth_headers, files=_audio_file()).status_code == 201
     assert (
         client.post(f"/api/v1/prescriptions/{rid}/audios", headers=pharmacist_headers, files=_audio_file()).status_code
         == 403
@@ -208,8 +208,8 @@ def test_listado_y_revision_de_alertas(client, doctor_headers, auth_headers):
     assert listado.status_code == 200 and len(listado.json()) >= 1
     alerta_id = listado.json()[0]["id_alerta"]
 
-    # Revisión (solo médico).
-    assert client.patch(f"/api/v1/alerts/{alerta_id}/review", headers=auth_headers, json={"revisada": True}).status_code == 403
+    # Revisión: médico y admin (superusuario) pueden.
+    assert client.patch(f"/api/v1/alerts/{alerta_id}/review", headers=auth_headers, json={"revisada": True}).status_code == 200
     rev = client.patch(f"/api/v1/alerts/{alerta_id}/review", headers=doctor_headers, json={"revisada": True})
     assert rev.status_code == 200 and rev.json()["revisada"] is True
 
@@ -219,6 +219,6 @@ def test_prevalidacion_permisos(client, doctor_headers, auth_headers, pharmacist
     med = _create_medication(client, auth_headers, f"Med {random.randint(1,9999)}")
     recipe = _create_recipe(client, doctor_headers, pid, [{"id_medicamento": med, "dosis": "1", "frecuencia": "8h"}])
     rid = recipe["id_receta"]
-    # Admin no prevalida; farmacéutico tampoco.
-    assert client.post(f"/api/v1/prescriptions/{rid}/prevalidate", headers=auth_headers).status_code == 403
+    # El admin (superusuario) sí prevalida; el farmacéutico no.
+    assert client.post(f"/api/v1/prescriptions/{rid}/prevalidate", headers=auth_headers).status_code == 200
     assert client.post(f"/api/v1/prescriptions/{rid}/prevalidate", headers=pharmacist_headers).status_code == 403

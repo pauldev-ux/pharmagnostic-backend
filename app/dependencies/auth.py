@@ -35,6 +35,9 @@ def get_current_user(
 
 def require_roles(*roles: str):
     def dependency(current_user: User = Depends(get_current_user)) -> User:
+        # El administrador es superusuario: tiene acceso a todas las funciones.
+        if current_user.rol.nombre == ROLE_ADMIN:
+            return current_user
         if current_user.rol.nombre not in roles:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
