@@ -1,0 +1,23 @@
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+sqlalchemy==2.0.36
+psycopg[binary]==3.2.1
+pydantic==2.10.4
+pydantic-settings==2.5.2
+alembic==1.13.1
+python-dotenv==1.0.1
+PyJWT==2.10.0
+pwdlib==0.2.1
+argon2-cffi==23.1.0
+email-validator==2.3.0
+python-multipart==0.0.12
+# Transcripción de audio (carga perezosa; descarga el modelo la primera vez).
+faster-whisper==1.0.3
+# Base farmacológica / RAG: extracción de texto (PDF/DOCX). Los embeddings y el chat
+# usan Ollama vía httpx (nomic-embed-text / llama3); no requieren LangChain instalado.
+pypdf==4.3.1
+python-docx==1.1.2
+# Generación de códigos QR para la dispensación en farmacia.
+qrcode[pil]==7.4.2
+pytest==8.4.2
+httpx==0.27.2

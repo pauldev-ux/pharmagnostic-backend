@@ -1,0 +1,22 @@
+VADEMÉCUM DEMOSTRATIVO - PHARMAGNOSTIC AI
+Fuente: Guía de referencia interna. Versión: 2024.
+
+WARFARINA
+La warfarina es un anticoagulante oral. Su efecto puede potenciarse peligrosamente
+cuando se administra junto con antiinflamatorios no esteroideos como el ibuprofeno,
+aumentando el riesgo de hemorragias. Se considera una interacción clínicamente
+relevante. Requiere control del INR y vigilancia estrecha.
+
+IBUPROFENO
+El ibuprofeno es un antiinflamatorio no esteroideo (AINE) usado para dolor e
+inflamación. Está contraindicado en pacientes con úlcera gastroduodenal activa y debe
+usarse con precaución en insuficiencia renal, ya que puede deteriorar la función renal.
+La combinación de ibuprofeno con warfarina incrementa el riesgo de sangrado.
+
+AMOXICILINA
+La amoxicilina es un antibiótico betalactámico. Está contraindicada en pacientes con
+alergia conocida a las penicilinas por riesgo de reacciones de hipersensibilidad graves.
+
+PARACETAMOL
+El paracetamol se utiliza para fiebre y dolor leve a moderado. Debe ajustarse la dosis
+en pacientes con insuficiencia hepática severa por riesgo de hepatotoxicidad.
