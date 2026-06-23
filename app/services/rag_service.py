@@ -132,6 +132,14 @@ class RagService:
     def process_document(self, document_id: int) -> dict:
         documento = self.get_document(document_id)
 
+        # Crear carpeta de almacenamiento si no existe
+        os.makedirs(settings.PHARMACOLOGICAL_FILES_PATH, exist_ok=True)
+
+        if not documento.ruta_archivo or not os.path.exists(documento.ruta_archivo):
+            documento.estado_procesamiento = "error"
+            self.repository.save(documento)
+            raise HTTPException(status_code=404, detail="El archivo del documento no existe en el almacenamiento")
+
         documento.estado_procesamiento = "procesando"
         self.repository.save(documento)
 

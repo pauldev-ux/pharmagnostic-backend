@@ -16,8 +16,10 @@ def create_initial_admin() -> None:
             return
 
         email = settings.INITIAL_ADMIN_EMAIL.lower()
-        user = db.query(User).filter(User.correo == email).first()
-        if user:
+        username = settings.INITIAL_ADMIN_USERNAME.strip()
+        user_by_email = db.query(User).filter(User.correo == email).first()
+        user_by_username = db.query(User).filter(User.username == username).first()
+        if user_by_email or user_by_username:
             print(f"El administrador inicial ya existe: {email}")
             return
 

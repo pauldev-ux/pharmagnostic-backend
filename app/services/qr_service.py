@@ -19,7 +19,8 @@ def generate_token() -> str:
 
 
 def verification_url(token: str) -> str:
-    return f"{settings.FRONTEND_URL.rstrip('/')}/farmacia/verificar/{token}"
+    primary_frontend = [url.strip() for url in settings.FRONTEND_URL.split(",") if url.strip()][0]
+    return f"{primary_frontend.rstrip('/')}/farmacia/verificar/{token}"
 
 
 def generate_qr_base64(data: str) -> str:

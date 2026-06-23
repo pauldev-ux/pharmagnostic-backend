@@ -91,6 +91,14 @@ class AudioService:
     def transcribe(self, audio_id: int, current_user: User) -> AudioClinico:
         audio = self.get_audio(audio_id)
 
+        # Crear carpeta de almacenamiento si no existe
+        os.makedirs(settings.AUDIO_STORAGE_DIR, exist_ok=True)
+
+        if not audio.ruta_archivo or not os.path.exists(audio.ruta_archivo):
+            audio.estado_procesamiento = "error"
+            self.repository.save(audio)
+            raise HTTPException(status_code=404, detail="El archivo de audio no existe en el almacenamiento")
+
         audio.estado_procesamiento = "procesando"
         self.repository.save(audio)
 

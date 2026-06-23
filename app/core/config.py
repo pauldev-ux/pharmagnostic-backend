@@ -59,6 +59,13 @@ class Settings(BaseSettings):
                 f"postgresql+psycopg://{self.DATABASE_USER}:{self.DATABASE_PASSWORD}"
                 f"@{self.DATABASE_HOST}:{self.DATABASE_PORT}/{self.DATABASE_NAME}"
             )
+        else:
+            db_url = self.DATABASE_URL.strip()
+            if db_url.startswith("postgres://"):
+                db_url = db_url.replace("postgres://", "postgresql+psycopg://", 1)
+            elif db_url.startswith("postgresql://"):
+                db_url = db_url.replace("postgresql://", "postgresql+psycopg://", 1)
+            self.DATABASE_URL = db_url
         return self
 
 
